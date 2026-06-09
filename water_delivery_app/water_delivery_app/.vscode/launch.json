@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter (lib\\cart_page.dart)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib\\cart_page.dart"
+        }
+    ]
+}
