@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'user_store.dart';
-import 'login_page.dart';
+import 'auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,61 +9,94 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final usernameController = TextEditingController();
-  final passwordController = TextEditingController();
-
-  void registerUser() {
-    UserStore.users.add({
-      'username': usernameController.text,
-      'password': passwordController.text,
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Registration Successful'),
-      ),
-    );
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const LoginPage(),
-      ),
-    );
-  }
+  final email = TextEditingController();
+  final password = TextEditingController();
+  final auth = AuthService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FF),
+
       appBar: AppBar(
-        title: const Text('Register'),
+        title: const Text("Register"),
+        backgroundColor: const Color(0xFF6C63FF),
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
+            const Icon(
+              Icons.person_add,
+              size: 80,
+              color: Color(0xFF6C63FF),
+            ),
+
+            const SizedBox(height: 20),
+
             TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(),
+              controller: email,
+              decoration: InputDecoration(
+                labelText: "Email",
+                labelStyle: const TextStyle(color: Color(0xFF6C63FF)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 12),
+
             TextField(
-              controller: passwordController,
+              controller: password,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: "Password",
+                labelStyle: const TextStyle(color: Color(0xFF6C63FF)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 25),
+
             ElevatedButton(
-              onPressed: registerUser,
-              child: const Text('Register'),
-            ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6C63FF),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                final user = await auth.register(
+                  email.text.trim(),
+                  password.text.trim(),
+                );
+
+                if (user != null && context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Register"),
+            )
           ],
         ),
       ),

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.water_delivery_app"
+    namespace = "com.emily.waterdeliveryapp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.water_delivery_app"
+        applicationId = "com.emily.waterdeliveryapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -43,3 +43,4 @@ kotlin {
 flutter {
     source = "../.."
 }
+apply(plugin = "com.google.gms.google-services")

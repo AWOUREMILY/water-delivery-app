@@ -1,71 +1,92 @@
 import 'package:flutter/material.dart';
-import 'cart_data.dart';
-import 'cart_model.dart';
-import 'cart_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'cart_service.dart';
 
 class ProductPage extends StatelessWidget {
   const ProductPage({super.key});
 
-  final List<Map<String, dynamic>> products = const [
-    {"name": "20L Water Bottle", "price": 50},
-    {"name": "10L Water Bottle", "price": 30},
-    {"name": "5L Water Bottle", "price": 20},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final cart = CartService();
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid; // nullable UID; handle when user is not signed in
+
+    final products = [
+      {"name": "20L Water", "price": 5000},
+      {"name": "10L Water", "price": 3000},
+      {"name": "5L Water", "price": 1500},
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Water Products"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CartPage()),
-              );
-            },
-          )
-        ],
+        title: const Text("Order Water"),
       ),
-
       body: ListView.builder(
-        padding: const EdgeInsets.all(16),
         itemCount: products.length,
         itemBuilder: (context, index) {
-          final product = products[index];
+          final item = products[index];
 
-          return InkWell(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("${product["name"]} tapped"),
+          return Card(
+            margin: const EdgeInsets.all(10),
+            elevation: 4,
+            child: ListTile(
+              leading: const Icon(
+                Icons.water_drop,
+                color: Colors.blue,
+              ),
+              title: Text(
+                item["name"].toString(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            },
+              ),
+              subtitle: Text(
+                "KSh ${item["price"]}",
+              ),
+              trailing: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    if (uid == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Please sign in first"),
+                        ),
+                      );
+                      return;
+                    }
 
-            child: Card(
-              child: ListTile(
-                leading: const Icon(Icons.water_drop, color: Colors.blue),
-                title: Text(product["name"]),
-                subtitle: Text("KSh ${product["price"]}"),
+                    print("Add button clicked");
 
-                trailing: IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    cartItems.add(
-                      CartItem(
-                        name: product["name"],
-                        price: product["price"],
-                      ),
+                    await cart.addToCart(
+                      uid,
+                      {
+                        "name": item["name"],
+                        "price": item["price"],
+                      },
                     );
+
+                    print("Item added successfully");
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Added to cart")),
+                      SnackBar(
+                        content: Text(
+                          "${item["name"]} added to cart",
+                        ),
+                      ),
                     );
-                  },
-                ),
+                  } catch (e) {
+                    print("ERROR: $e");
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Error: $e",
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: const Text("Add"),
               ),
             ),
           );
