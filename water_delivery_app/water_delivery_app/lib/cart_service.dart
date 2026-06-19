@@ -1,18 +1,85 @@
+import 'database_helper.dart';
+
+
 class CartService {
-  static final List<Map<String, dynamic>> _cartItems = [];
 
+
+  // Add item to cart / create order
   Future<void> addToCart(
-    String uid,
-    Map<String, dynamic> item,
-  ) async {
-    _cartItems.add(item);
+      String uid,
+      Map<String, dynamic> item) async {
+
+
+    final db =
+        await DatabaseHelper.instance.database;
+
+
+    await db.insert(
+
+      'orders',
+
+      {
+
+        'customer_id': uid,
+
+        'product_name': item['name'],
+
+        'price': item['price'],
+
+        'quantity': 1,
+
+      },
+
+    );
+
   }
 
-  List<Map<String, dynamic>> getCartItems() {
-    return _cartItems;
+
+
+
+  // Get user's orders
+  Future<List<Map<String, dynamic>>> getCartItems(
+      String uid) async {
+
+
+    final db =
+        await DatabaseHelper.instance.database;
+
+
+    return await db.query(
+
+      'orders',
+
+      where: 'customer_id = ?',
+
+      whereArgs: [uid],
+
+    );
+
   }
 
-  Future<void> clearCart(String uid) async {
-    _cartItems.clear();
+
+
+
+  // Clear user's orders after checkout
+  Future<void> clearCart(
+      String uid) async {
+
+
+    final db =
+        await DatabaseHelper.instance.database;
+
+
+    await db.delete(
+
+      'orders',
+
+      where: 'customer_id = ?',
+
+      whereArgs: [uid],
+
+    );
+
   }
+
 }

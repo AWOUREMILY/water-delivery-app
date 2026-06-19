@@ -8,109 +8,331 @@ class CustomerPage extends StatefulWidget {
   State<CustomerPage> createState() => _CustomerPageState();
 }
 
+
 class _CustomerPageState extends State<CustomerPage> {
+
   final CustomerService service = CustomerService();
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController nameController =
+      TextEditingController();
 
-  void showForm({int? index}) {
-    if (index != null) {
-      final customer = service.getCustomers()[index];
-      nameController.text = customer["name"]!;
-      phoneController.text = customer["phone"]!;
+  final TextEditingController phoneController =
+      TextEditingController();
+
+
+
+  void showForm({Map<String, dynamic>? customer}) {
+
+    if (customer != null) {
+
+      nameController.text = customer["name"];
+      phoneController.text = customer["phone"];
+
     } else {
+
       nameController.clear();
       phoneController.clear();
+
     }
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(index == null ? "Add Customer" : "Edit Customer"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: "Name"),
-            ),
-            TextField(
-              controller: phoneController,
-              decoration: const InputDecoration(labelText: "Phone"),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                final data = {
-                  "name": nameController.text,
-                  "phone": phoneController.text,
-                };
 
-                if (index == null) {
-                  service.addCustomer(data);
-                } else {
-                  service.updateCustomer(index, data);
-                }
-              });
+    showDialog(
+
+      context: context,
+
+      builder: (_) => AlertDialog(
+
+        title: Text(
+          customer == null
+              ? "Add Customer"
+              : "Edit Customer",
+        ),
+
+
+        content: Column(
+
+          mainAxisSize: MainAxisSize.min,
+
+          children: [
+
+
+            TextField(
+
+              controller: nameController,
+
+              decoration:
+              const InputDecoration(
+                labelText: "Name",
+              ),
+
+            ),
+
+
+
+            TextField(
+
+              controller: phoneController,
+
+              decoration:
+              const InputDecoration(
+                labelText: "Phone",
+              ),
+
+            ),
+
+
+          ],
+
+        ),
+
+
+        actions: [
+
+
+          ElevatedButton(
+
+            onPressed: () async {
+
+
+              final data = {
+
+                "name": nameController.text,
+
+                "phone": phoneController.text,
+
+              };
+
+
+              if (customer == null) {
+
+
+                await service.addCustomer(data);
+
+
+              } else {
+
+
+                await service.updateCustomer(
+
+                  customer["id"],
+
+                  data,
+
+                );
+
+              }
+
+
+              setState(() {});
+
 
               Navigator.pop(context);
+
+
             },
-            child: const Text("Save"),
-          ),
+
+
+            child:
+            const Text("Save"),
+
+          )
+
         ],
+
       ),
+
     );
+
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
-    final customers = service.getCustomers();
+
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Customers")),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showForm(),
-        child: const Icon(Icons.add),
-      ),
-      body: customers.isEmpty
-          ? const Center(child: Text("No customers yet"))
-          : ListView.builder(
-              itemCount: customers.length,
-              itemBuilder: (context, index) {
-                final c = customers[index];
 
-                return ListTile(
-                  title: Text(c["name"] ?? ""),
-                
-                  subtitle: Text(c["phone"] ?? ""),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => showForm(index: index),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            service.deleteCustomer(index);
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+
+      appBar:
+      AppBar(
+        title:
+        const Text("Customers"),
+      ),
+
+
+
+      floatingActionButton:
+
+      FloatingActionButton(
+
+        onPressed: () {
+
+          showForm();
+
+        },
+
+        child:
+        const Icon(Icons.add),
+
+      ),
+
+
+
+
+      body:
+
+      FutureBuilder<List<Map<String,dynamic>>>(
+
+
+        future:
+        service.getCustomers(),
+
+
+
+        builder:(context, snapshot){
+
+
+          if(snapshot.connectionState ==
+              ConnectionState.waiting){
+
+            return const Center(
+              child:CircularProgressIndicator(),
+            );
+
+          }
+
+
+
+          if(!snapshot.hasData ||
+              snapshot.data!.isEmpty){
+
+            return const Center(
+
+              child:
+              Text("No customers yet"),
+
+            );
+
+          }
+
+
+
+          final customers =
+          snapshot.data!;
+
+
+
+          return ListView.builder(
+
+
+            itemCount:
+            customers.length,
+
+
+
+            itemBuilder:(context,index){
+
+
+              final customer =
+              customers[index];
+
+
+
+              return ListTile(
+
+
+                title:
+                Text(
+                  customer["name"],
+                ),
+
+
+
+                subtitle:
+                Text(
+                  customer["phone"],
+                ),
+
+
+
+                trailing:
+
+                Row(
+
+                  mainAxisSize:
+                  MainAxisSize.min,
+
+
+                  children: [
+
+
+
+                    IconButton(
+
+                      icon:
+                      const Icon(Icons.edit),
+
+
+                      onPressed:(){
+
+                        showForm(
+                          customer: customer,
+                        );
+
+                      },
+
+                    ),
+
+
+
+
+                    IconButton(
+
+                      icon:
+                      const Icon(Icons.delete),
+
+
+                      onPressed:() async{
+
+
+                        await service.deleteCustomer(
+
+                          customer["id"],
+
+                        );
+
+
+                        setState(() {});
+
+
+                      },
+
+                    ),
+
+
+                  ],
+
+                ),
+
+
+              );
+
+
+            },
+
+          );
+
+        },
+
+
+      ),
+
+
     );
+
   }
+
 }

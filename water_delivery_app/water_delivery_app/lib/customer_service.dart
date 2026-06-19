@@ -1,19 +1,87 @@
+import 'database_helper.dart';
+
+
 class CustomerService {
-  static final List<Map<String, String>> _customers = [];
 
-  List<Map<String, String>> getCustomers() {
-    return _customers;
+
+
+  Future<void> addCustomer(
+      Map<String,String> customer) async {
+
+
+    final db =
+    await DatabaseHelper.instance.database;
+
+
+    await db.insert(
+      'customers',
+      customer,
+    );
+
   }
 
-  void addCustomer(Map<String, String> customer) {
-    _customers.add(customer);
+
+
+  Future<List<Map<String,dynamic>>> getCustomers() async {
+
+
+    final db =
+    await DatabaseHelper.instance.database;
+
+
+    return await db.query(
+      'customers',
+    );
+
   }
 
-  void updateCustomer(int index, Map<String, String> customer) {
-    _customers[index] = customer;
+
+
+
+  Future<void> updateCustomer(
+      int id,
+      Map<String,String> customer) async {
+
+
+    final db =
+    await DatabaseHelper.instance.database;
+
+
+    await db.update(
+
+      'customers',
+
+      customer,
+
+      where: 'id = ?',
+
+      whereArgs: [id],
+
+    );
+
   }
 
-  void deleteCustomer(int index) {
-    _customers.removeAt(index);
+
+
+
+  Future<void> deleteCustomer(
+      int id) async {
+
+
+    final db =
+    await DatabaseHelper.instance.database;
+
+
+    await db.delete(
+
+      'customers',
+
+      where: 'id = ?',
+
+      whereArgs: [id],
+
+    );
+
   }
+
 }

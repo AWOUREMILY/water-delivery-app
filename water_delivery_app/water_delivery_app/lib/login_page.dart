@@ -18,21 +18,58 @@ class _LoginPageState extends State<LoginPage> {
   bool loading = false;
 
   @override
+  void dispose() {
+    email.dispose();
+    password.dispose();
+    super.dispose();
+  }
+
+  Future<void> loginUser() async {
+    setState(() => loading = true);
+
+    final user = await auth.login(
+      email.text.trim(),
+      password.text.trim(),
+    );
+
+    setState(() => loading = false);
+
+    if (!mounted) return;
+
+    if (user != null && user["success"] == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HomePage(
+            username: user["email"] ?? "",
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            user?["message"] ?? "Login Failed",
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF), // soft blue background
-
+      backgroundColor: const Color(0xFFF2F8FF),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
               children: [
-
                 const Icon(
                   Icons.water_drop,
                   size: 90,
-                  color: Color(0xFF1976D2), // deep blue
+                  color: Color(0xFF1976D2),
                 ),
 
                 const SizedBox(height: 15),
@@ -48,7 +85,6 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 30),
 
-                // EMAIL FIELD
                 TextField(
                   controller: email,
                   decoration: InputDecoration(
@@ -64,7 +100,6 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 12),
 
-                // PASSWORD FIELD
                 TextField(
                   controller: password,
                   obscureText: true,
@@ -81,40 +116,22 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 25),
 
-                // LOGIN BUTTON
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
+                    onPressed: loading ? null : loginUser,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00A896), // teal green
+                      backgroundColor: const Color(0xFF00A896),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () async {
-                      setState(() => loading = true);
-
-                      final user = await auth.login(
-                        email.text.trim(),
-                        password.text.trim(),
-                      );
-
-                      setState(() => loading = false);
-
-                      if (user != null && context.mounted) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                HomePage(username: user.email ?? ""),
-                          ),
-                        );
-                      }
-                    },
                     child: Text(
                       loading ? "Loading..." : "Login",
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -137,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

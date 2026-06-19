@@ -1,35 +1,68 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<User?> login(String email, String password) async {
+  final String baseUrl = "http://10.50.49.154/water_delivery_api";
+
+  Future<Map<String, dynamic>?> register(
+      String email, String password) async {
+
     try {
-      final result = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      var response = await http.post(
+        Uri.parse("$baseUrl/register.php"),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: {
+          "email": email,
+          "password": password,
+        },
       );
-      return result.user;
-    } on FirebaseAuthException catch (e) {
-      print("LOGIN ERROR: ${e.code} - ${e.message}");
-      return null;
+
+      // DEBUG LINES - ADD HERE
+      print("Register Status Code: ${response.statusCode}");
+      print("Register Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+
+    } catch (e) {
+      print("Register Error: $e");
     }
+
+    return null;
   }
 
-  Future<User?> register(String email, String password) async {
-    try {
-      final result = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return result.user;
-    } on FirebaseAuthException catch (e) {
-      print("REGISTER ERROR: ${e.code} - ${e.message}");
-      return null;
-    }
-  }
 
-  Future<void> logout() async {
-    await _auth.signOut();
+  Future<Map<String, dynamic>?> login(
+      String email, String password) async {
+
+    try {
+      var response = await http.post(
+        Uri.parse("$baseUrl/login.php"),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: {
+          "email": email,
+          "password": password,
+        },
+      );
+
+      
+      print("Login Status Code: ${response.statusCode}");
+      print("Login Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+
+    } catch (e) {
+      print("Login Error: $e");
+    }
+
+    return null;
   }
 }
