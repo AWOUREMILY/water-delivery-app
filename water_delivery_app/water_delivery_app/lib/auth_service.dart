@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
 
-  final String baseUrl = "http://10.50.49.154/water_delivery_api";
+  final String baseUrl = "http://10.210.130.207/water_delivery_api";
 
   Future<Map<String, dynamic>?> register(
       String email, String password) async {

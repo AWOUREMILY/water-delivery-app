@@ -1,35 +1,70 @@
 import 'package:flutter/material.dart';
 import 'cart_service.dart';
+import 'event_logger.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';
+
 
 
 class CartPage extends StatefulWidget {
 
-  const CartPage({super.key});
+  const CartPage({
+    super.key,
+  });
 
 
   @override
-  State<CartPage> createState() => _CartPageState();
+  State<CartPage> createState() =>
+      _CartPageState();
 
 }
+
 
 
 
 class _CartPageState extends State<CartPage> {
 
 
-  final CartService cart = CartService();
+  final CartService cart =
+      CartService();
+
 
 
 
   Future<String?> getUserId() async {
 
+
     final user =
         FirebaseAuth.instance.currentUser;
+
 
     return user?.uid;
 
   }
+
+
+
+
+  Future<void> removeItem(
+      String uid,
+      String productName) async {
+
+
+    EventLogger.add(
+  "Swipe Remove $productName",
+);
+
+    await cart.removeFromCart(
+      uid,
+      productName,
+    );
+
+
+    setState(() {});
+
+
+  }
+
+
 
 
 
@@ -41,9 +76,14 @@ class _CartPageState extends State<CartPage> {
 
 
       appBar:
+
       AppBar(
+
         title:
-        const Text("My Orders"),
+            const Text(
+              "My Orders",
+            ),
+
       ),
 
 
@@ -52,38 +92,51 @@ class _CartPageState extends State<CartPage> {
 
       FutureBuilder<String?>(
 
+
         future:
-        getUserId(),
+            getUserId(),
 
 
-        builder:(context, userSnapshot){
+
+        builder:
+            (context,userSnapshot){
+
 
 
           if(!userSnapshot.hasData){
 
+
             return const Center(
-              child:CircularProgressIndicator(),
+
+              child:
+                  CircularProgressIndicator(),
+
             );
+
 
           }
 
 
+
           final uid =
-          userSnapshot.data;
+              userSnapshot.data;
 
 
 
           if(uid == null){
 
+
             return const Center(
 
               child:
-              Text("Please login first"),
+                  Text(
+                    "Please login first",
+                  ),
 
             );
 
-          }
 
+          }
 
 
 
@@ -91,43 +144,48 @@ class _CartPageState extends State<CartPage> {
 
 
             future:
-            cart.getCartItems(uid),
+                cart.getCartItems(uid),
 
 
 
-            builder:(context, snapshot){
+            builder:
+                (context,snapshot){
+
 
 
               if(snapshot.connectionState ==
                   ConnectionState.waiting){
 
+
                 return const Center(
+
                   child:
-                  CircularProgressIndicator(),
+                      CircularProgressIndicator(),
+
                 );
 
               }
 
 
 
-
               final items =
-              snapshot.data ?? [];
-
+                  snapshot.data ?? [];
 
 
 
               if(items.isEmpty){
 
+
                 return const Center(
 
                   child:
-                  Text("Cart is empty"),
+                      Text(
+                        "Cart is empty",
+                      ),
 
                 );
 
               }
-
 
 
 
@@ -136,70 +194,191 @@ class _CartPageState extends State<CartPage> {
 
               for(var item in items){
 
+
                 total += item["price"];
 
               }
 
 
 
-
-
               return Column(
 
-
                 children:[
-
-
-
-                  Expanded(
-
+                                    Expanded(
 
                     child:
+
                     ListView.builder(
 
 
                       itemCount:
-                      items.length,
+                          items.length,
 
 
 
-                      itemBuilder:(context,index){
+                      itemBuilder:
+                          (context,index){
+
 
 
                         final item =
-                        items[index];
+                            items[index];
 
 
 
-                        return ListTile(
+                        return Dismissible(
 
 
-                          leading:
-                          const Icon(
-                            Icons.water_drop,
-                            color:Colors.blue,
+                          key:
+                              Key(
+                                item["product_name"],
+                              ),
+
+
+
+                          direction:
+                              DismissDirection.horizontal,
+
+
+
+                          onDismissed:
+                              (direction) async {
+
+
+                            await removeItem(
+
+                              uid,
+
+                              item["product_name"],
+
+                            );
+
+
+
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(
+
+
+                              SnackBar(
+
+                                content:
+                                    Text(
+
+                                  "${item["product_name"]} removed",
+
+                                ),
+
+                              ),
+
+
+                            );
+
+
+                          },
+
+
+
+                          background:
+                              Container(
+
+                            color:
+                                Colors.red,
+
+                            alignment:
+                                Alignment.centerLeft,
+
+                            padding:
+                                const EdgeInsets.only(
+                                  left:20,
+                                ),
+
+
+                            child:
+                                const Icon(
+
+                              Icons.delete,
+
+                              color:
+                                  Colors.white,
+
+                            ),
+
                           ),
 
 
 
-                          title:
-                          Text(
-                            item["product_name"],
+                          secondaryBackground:
+                              Container(
+
+                            color:
+                                Colors.red,
+
+                            alignment:
+                                Alignment.centerRight,
+
+                            padding:
+                                const EdgeInsets.only(
+                                  right:20,
+                                ),
+
+
+                            child:
+                                const Icon(
+
+                              Icons.delete,
+
+                              color:
+                                  Colors.white,
+
+                            ),
+
                           ),
 
 
 
-                          subtitle:
-                          Text(
-                            "KSh ${item["price"]}",
-                          ),
 
+                          child:
+
+                          ListTile(
+
+
+                            leading:
+                                const Icon(
+
+                              Icons.water_drop,
+
+                              color:
+                                  Colors.blue,
+
+                            ),
+
+
+
+                            title:
+                                Text(
+
+                              item["product_name"],
+
+                            ),
+
+
+
+                            subtitle:
+                                Text(
+
+                              "KSh ${item["price"]}",
+
+                            ),
+
+
+                          ),
 
 
                         );
 
 
                       },
+
 
                     ),
 
@@ -210,12 +389,16 @@ class _CartPageState extends State<CartPage> {
 
                   Padding(
 
+
                     padding:
-                    const EdgeInsets.all(16),
+                        const EdgeInsets.all(16),
+
 
 
                     child:
+
                     Column(
+
 
                       children:[
 
@@ -223,24 +406,35 @@ class _CartPageState extends State<CartPage> {
 
                         Text(
 
+
                           "Total: KSh $total",
 
-                          style:
-                          const TextStyle(
 
-                            fontSize:20,
+
+                          style:
+                              const TextStyle(
+
+
+                            fontSize:
+                                20,
+
 
                             fontWeight:
-                            FontWeight.bold,
+                                FontWeight.bold,
+
 
                           ),
+
 
                         ),
 
 
 
                         const SizedBox(
-                          height:10,
+
+                          height:
+                              10,
+
                         ),
 
 
@@ -249,7 +443,15 @@ class _CartPageState extends State<CartPage> {
                         ElevatedButton(
 
 
-                          onPressed:() async {
+
+                          onPressed:
+                              () async {
+
+
+
+                            EventLogger.add(
+                              "Checkout Button Tapped",
+                            );
 
 
 
@@ -261,18 +463,30 @@ class _CartPageState extends State<CartPage> {
 
 
 
+                            EventLogger.add(
+                              " Order Completed",
+                            );
+
+
+
                             ScaffoldMessenger.of(context)
                                 .showSnackBar(
 
 
+
                               const SnackBar(
 
+
                                 content:
-                                Text(
+                                    Text(
+
                                   "Order placed successfully",
+
                                 ),
 
+
                               ),
+
 
                             );
 
@@ -280,9 +494,12 @@ class _CartPageState extends State<CartPage> {
                           },
 
 
+
                           child:
-                          const Text(
+                              const Text(
+
                             "Checkout",
+
                           ),
 
 
@@ -292,7 +509,9 @@ class _CartPageState extends State<CartPage> {
 
                       ],
 
+
                     ),
+
 
                   )
 
@@ -306,6 +525,7 @@ class _CartPageState extends State<CartPage> {
 
             },
 
+
           );
 
 
@@ -317,6 +537,8 @@ class _CartPageState extends State<CartPage> {
 
     );
 
+
   }
+
 
 }

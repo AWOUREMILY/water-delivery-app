@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:water_delivery_app/event_logger.dart';
+
 import 'cart_service.dart';
 import 'product_service.dart';
+import 'event_logger.dart';
+
 
 
 class ProductPage extends StatefulWidget {
 
-  const ProductPage({super.key});
+  const ProductPage({
+    super.key,
+  });
 
 
   @override
@@ -17,197 +23,306 @@ class ProductPage extends StatefulWidget {
 
 
 
-class _ProductPageState extends State<ProductPage>{
 
+class _ProductPageState extends State<ProductPage> {
 
-final ProductService service =
-ProductService();
 
+  final ProductService service =
+      ProductService();
 
-final cart = CartService();
 
+  final CartService cart =
+      CartService();
 
 
-@override
-Widget build(BuildContext context){
 
 
-final user =
-FirebaseAuth.instance.currentUser;
+  @override
+  Widget build(BuildContext context) {
 
 
-final uid =
-user?.uid;
+    final user =
+        FirebaseAuth.instance.currentUser;
 
 
+    final uid =
+        user?.uid;
 
-return Scaffold(
 
 
-appBar:
-AppBar(
-title:
-const Text("Order Water"),
-),
+    return Scaffold(
 
 
+      appBar:
+          AppBar(
 
-body:
+        title:
+            const Text(
+              "Order Water",
+            ),
 
-FutureBuilder<List<Map<String,dynamic>>>(
+      ),
 
 
-future:
-service.getProducts(),
 
+      body:
 
+      FutureBuilder<List<Map<String,dynamic>>>(
 
-builder:(context,snapshot){
 
+        future:
+            service.getProducts(),
 
-if(!snapshot.hasData){
 
-return const Center(
-child:CircularProgressIndicator(),
-);
 
-}
+        builder:
+            (context, snapshot) {
 
 
 
-final products =
-snapshot.data!;
+          if (!snapshot.hasData) {
 
 
+            return const Center(
 
-return ListView.builder(
+              child:
+                  CircularProgressIndicator(),
 
+            );
 
-itemCount:
-products.length,
+          }
 
 
 
-itemBuilder:(context,index){
 
+          final products =
+              snapshot.data!;
 
-final item =
-products[index];
 
 
+          return ListView.builder(
 
-return Card(
 
+            itemCount:
+                products.length,
 
-margin:
-const EdgeInsets.all(10),
 
 
+            itemBuilder:
+                (context,index) {
 
-child:ListTile(
 
 
+              final item =
+                  products[index];
 
-leading:
-const Icon(
-Icons.water_drop,
-color:Colors.blue,
-),
 
 
 
-title:
-Text(
-item["name"],
-),
+              return GestureDetector(
 
 
+                onLongPress: () {
 
-subtitle:
-Text(
-"KSh ${item["price"]}",
-),
 
+                  EventLogger.add(
+                    " Long Press on ${item["name"]}",
+                  );
 
 
-trailing:
+                  showDialog(
 
-ElevatedButton(
+                    context:
+                        context,
 
 
-onPressed:() async{
+                    builder:
+                        (context) {
 
 
-if(uid==null){
+                      return AlertDialog(
 
-return;
 
-}
+                        title:
+                            Text(
+                              item["name"],
+                            ),
 
 
 
-await cart.addToCart(
+                        content:
+                            Text(
+                              "Water Price: KSh ${item["price"]}",
+                            ),
 
-uid,
 
-{
 
-"name":item["name"],
+                        actions: [
 
-"price":item["price"],
 
-},
+                          TextButton(
 
-);
+                            onPressed: () {
 
 
+                              Navigator.pop(
+                                context,
+                              );
 
-ScaffoldMessenger.of(context)
-.showSnackBar(
 
-SnackBar(
+                            },
 
-content:
-Text(
-"${item["name"]} added to cart"
-),
+                            child:
+                                const Text(
+                                  "Close",
+                                ),
 
-),
+                          ),
 
-);
+                        ],
 
 
-},
+                      );
 
 
-child:
-const Text("Add"),
+                    },
 
-),
+                  );
 
+                },
 
-),
 
 
-);
+                child:
+                    Card(
 
+                  margin:
+                      const EdgeInsets.all(10),
 
 
-},
 
+                  child:
+                      ListTile(
 
-);
 
+                    leading:
+                        const Icon(
 
-},
+                      Icons.water_drop,
 
+                      color:
+                          Colors.blue,
 
-),
+                    ),
 
 
-);
 
+                    title:
+                        Text(
+                          item["name"],
+                        ),
 
-}
+
+
+                    subtitle:
+                        Text(
+                          "KSh ${item["price"]}",
+                        ),
+
+
+
+                    trailing:
+                        ElevatedButton(
+
+
+                      onPressed:
+                          () async {
+
+                            EventLogger.add(
+                              " Add Button Tapped",
+                            );
+
+
+                            if(uid == null){
+
+                              return;
+
+                            }
+                                                        await cart.addToCart(
+
+                              uid,
+
+                              {
+
+                                "name":
+                                    item["name"],
+
+                                "price":
+                                    item["price"],
+
+                              },
+
+                            );
+
+
+
+                            EventLogger.add(
+                              " ${item["name"]} Added To Cart",
+                            );
+
+
+
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(
+
+                              SnackBar(
+
+                                content:
+                                    Text(
+
+                                  "${item["name"]} added to cart",
+
+                                ),
+
+                              ),
+
+                            );
+
+
+                          },
+
+
+
+                      child:
+                          const Text(
+                            "Add",
+                          ),
+
+                    ),
+
+
+
+                  ),
+
+                ),
+
+              );
+
+            },
+
+
+          );
+
+
+        },
+
+      ),
+
+
+    );
+
+
+  }
+
 
 }
